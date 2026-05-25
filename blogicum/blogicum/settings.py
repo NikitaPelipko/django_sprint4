@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-sb$zdslwl3)^k48sq_b!voz@cdf925+#y!8$!qte-x+ut+o*r%"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -112,6 +112,15 @@ STATICFILES_DIRS = [
     BASE_DIR / "static_dev",
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' 
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+DEFAULT_FROM_EMAIL = 'noreply@blogicum.ru'
+
+LOGIN_REDIRECT_URL = 'blog:index'
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -129,4 +138,4 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-CSRF_FAILURE_VIEW = 'core.views.csrf_failure' 
+CSRF_FAILURE_VIEW = 'pages.views.csrf_failure' 

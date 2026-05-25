@@ -1,4 +1,4 @@
-from .models import Post
+from .models import Post, Comment
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -8,7 +8,6 @@ User = get_user_model()
 
 
 class CreatePostForm(forms.ModelForm):
-
     pub_date = forms.DateTimeField(
         label='Дата и время публикации',
         required=True,
@@ -18,30 +17,44 @@ class CreatePostForm(forms.ModelForm):
                 'type': 'datetime-local'
             }
         ),
-        help_text='Если установить дату и время в будущем — '
-            'можно делать отложенные публикации.'
+        help_text='Можно указать текущее время или более позднее для отложенной публикации'
     )
 
     class Meta:
         model = Post
-        fields = ('text','location', 'category', 'pub_date')
-
+        fields = ('title', 'text', 'location', 'category', 'pub_date', 'image')
+        labels = {
+            'text': 'Текст поста',
+            'location': 'Местоположение',
+            'category': 'Категория',
+            'image': 'Изображение', 
+        }
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+            'location': forms.Select(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.pk and not self.data:
             self.fields['pub_date'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
     
     def clean_pub_date(self):
-        """Валидация даты публикации"""
         pub_date = self.cleaned_data.get('pub_date')
-        
         if not pub_date:
             raise ValidationError('Укажите дату и время публикации')
-        
+        # if pub_date < timezone.now():
+        #     raise ValidationError('Дата публикации не может быть в прошлом')
         return pub_date
 
 
 class UserProfileForm(forms.ModelForm):
+    email_confirm = forms.EmailField(
+        label='Подтверждение email',
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
     
     class Meta:
         model = User
@@ -85,3 +98,21 @@ class UserProfileForm(forms.ModelForm):
                 raise ValidationError('Пользователь с таким email уже существует')
         
         return cleaned_data
+    
+
+class CommentForm(forms.ModelForm):
+    """Форма для создания комментария"""
+    
+    class Meta:
+        model = Comment
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Напишите ваш комментарий...'
+            }),
+        }
+        labels = {
+            'text': 'Комментарий',
+        }
