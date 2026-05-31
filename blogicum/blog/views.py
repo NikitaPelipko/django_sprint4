@@ -47,11 +47,12 @@ class PostDetailView(DetailView):
 
     def get_object(self, queryset=None):
         post = super().get_object(queryset)
+        category_is_published = post.category is not None and post.category.is_published
 
         if (
             post.is_published
             and post.pub_date <= timezone.now()
-            and post.category.is_published
+            and category_is_published
         ):
             return post
 
