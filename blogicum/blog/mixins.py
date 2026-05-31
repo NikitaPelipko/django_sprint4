@@ -28,12 +28,19 @@ class CommentCountMixin:
 
         if user and user.is_authenticated:
             queryset = queryset.filter(
-                Q(is_published=True, pub_date__lte=timezone.now()) | Q(author=user)
+                Q(author=user)
+                | Q(
+                    is_published=True,
+                    pub_date__lte=timezone.now(),
+                    category__is_published=True,
+                )
             )
         else:
-            queryset = queryset.filter(is_published=True, pub_date__lte=timezone.now())
-
-        queryset = queryset.filter(category__is_published=True)
+            queryset = queryset.filter(
+                is_published=True,
+                pub_date__lte=timezone.now(),
+                category__is_published=True,
+            )
 
         return queryset
 

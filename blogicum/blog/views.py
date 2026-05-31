@@ -95,13 +95,9 @@ class EditPostView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         """Проверка авторизации и прав доступа"""
-        if not request.user.is_authenticated:
-            post = get_object_or_404(Post, pk=self.kwargs["pk"])
-            return redirect("blog:post_detail", id=post.id)
-
         post = self.get_object()
         if post.author != request.user:
-            return redirect("blog:post_detail", id=post.id)
+            return redirect("blog:post_detail", post_id=post.id)
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -187,13 +183,10 @@ class ProfileDetailView(PaginationMixin, CommentCountMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        user_posts = self.get_posts_with_comments(user=self.request.user)
-        user_posts = user_posts.filter(author=self.object)
-
-        if self.request.user != self.object:
-            user_posts = user_posts.filter(
-                is_published=True, pub_date__lte=timezone.now()
-            )
+        user_posts = self.get_posts_with_comments(
+            base_queryset=Post.objects.filter(author=self.object),
+            user=self.request.user,
+        )
 
         context['page_obj'] = self.paginate_queryset(user_posts)
 
@@ -251,7 +244,9 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return response
 
     def get_success_url(self):
-        return reverse_lazy("blog:post_detail", kwargs={"id": self.kwargs["post_id"]})
+        return reverse_lazy(
+            "blog:post_detail", kwargs={"post_id": self.kwargs["post_id"]}
+        )
 
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -289,7 +284,9 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return Comment.objects.select_related("author", "post")
 
     def get_success_url(self):
-        return reverse_lazy("blog:post_detail", kwargs={"id": self.object.post.id})
+        return reverse_lazy(
+            "blog:post_detail", kwargs={"post_id": self.object.post.id}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -314,7 +311,9 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return Comment.objects.select_related("post")
 
     def get_success_url(self):
-        return reverse_lazy("blog:post_detail", kwargs={"id": self.object.post.id})
+        return reverse_lazy(
+            "blog:post_detail", kwargs={"post_id": self.object.post.id}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
