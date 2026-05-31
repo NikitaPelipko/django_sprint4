@@ -22,17 +22,19 @@ class CreatePostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ('title', 'text', 'location', 'category', 'pub_date', 'image')
+        fields = ('title', 'text', 'location', 'category', 'pub_date', 'image', 'is_published')
         labels = {
             'text': 'Текст поста',
             'location': 'Местоположение',
             'category': 'Категория',
-            'image': 'Изображение', 
+            'image': 'Изображение',
+            'is_published': 'Опубликован',
         }
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
             'location': forms.Select(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
+            'is_published': forms.CheckboxInput(),
         }
     
     def __init__(self, *args, **kwargs):
